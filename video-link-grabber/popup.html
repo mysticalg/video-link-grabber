@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Video Link Grabber</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Video Link Grabber</h1>
+      <p class="sub">Finds video URLs on this page. Only downloads content you have rights to. No DRM bypass.</p>
+      <button id="scanBtn" title="Rescan the page">Rescan</button>
+    </header>
+    <main>
+      <div id="status">Scanning…</div>
+      <ul id="results"></ul>
+      <template id="itemTpl">
+        <li class="item">
+          <div class="thumbWrap">
+            <img class="thumb" alt="thumbnail"/>
+          </div>
+          <div class="meta">
+            <div class="title"></div>
+            <div class="details">
+              <span class="type"></span>
+              <span class="size"></span>
+              <span class="from"></span>
+            </div>
+            <div class="actions">
+              <a class="download" target="_blank" rel="noopener noreferrer">Download</a>
+              <button class="copy">Copy URL</button>
+              <a class="open" target="_blank" rel="noopener noreferrer">Open</a>
+            </div>
+          </div>
+        </li>
+      </template>
+    </main>
+    <footer>
+      <small>Some servers block size lookups or cross-origin thumbnails. Streaming manifests (.m3u8/.mpd) aren't single-file videos.</small>
+    </footer>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

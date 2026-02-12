@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Video Link Grabber",
+  "version": "1.0.0",
+  "description": "Finds video URLs on the current page and lists them with thumbnails and sizes for easy downloading. Does not bypass DRM.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Find videos",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "contentScript.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
