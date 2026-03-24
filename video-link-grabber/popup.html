@@ -8,36 +8,43 @@
   </head>
   <body>
     <header>
-      <h1>Video Link Grabber</h1>
-      <p class="sub">Finds video URLs on this page. Only downloads content you have rights to. No DRM bypass.</p>
-      <button id="scanBtn" title="Rescan the page">Rescan</button>
+      <div class="brand">
+        <img class="logo" src="assets/icon32.png" alt="" />
+        <div>
+          <h1>Video Link Grabber</h1>
+          <p class="sub">Scans only the current tab when you open this popup. No DRM bypass.</p>
+        </div>
+      </div>
+      <button id="scanBtn" type="button" title="Scan the current page again">Rescan</button>
     </header>
     <main>
-      <div id="status">Scanning…</div>
+      <div id="status" role="status" aria-live="polite">Scanning...</div>
+      <p id="summary" class="summary" hidden></p>
       <ul id="results"></ul>
       <template id="itemTpl">
         <li class="item">
           <div class="thumbWrap">
-            <img class="thumb" alt="thumbnail"/>
+            <img class="thumb" alt="" />
           </div>
           <div class="meta">
             <div class="title"></div>
             <div class="details">
-              <span class="type"></span>
-              <span class="size"></span>
-              <span class="from"></span>
+              <span class="badge kind"></span>
+              <span class="badge type"></span>
+              <span class="origin"></span>
             </div>
+            <div class="from"></div>
+            <div class="note" hidden></div>
             <div class="actions">
-              <a class="download" target="_blank" rel="noopener noreferrer">Download</a>
-              <button class="copy">Copy URL</button>
-              <a class="open" target="_blank" rel="noopener noreferrer">Open</a>
+              <a class="open" target="_blank" rel="noopener noreferrer">Open link</a>
+              <button class="copy" type="button">Copy link</button>
             </div>
           </div>
         </li>
       </template>
     </main>
     <footer>
-      <small>Some servers block size lookups or cross-origin thumbnails. Streaming manifests (.m3u8/.mpd) aren't single-file videos.</small>
+      <small>Stream manifests such as `.m3u8` and `.mpd` are playlists, not single video files. Some preview images may be blocked cross-origin.</small>
     </footer>
     <script src="popup.js" type="module"></script>
   </body>

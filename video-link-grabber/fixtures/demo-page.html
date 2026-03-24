@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Video Link Grabber Demo Page</title>
+    <meta property="og:image" content="https://interactive-examples.mdn.mozilla.net/media/examples/fruits.jpg" />
+    <meta property="og:video" content="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: linear-gradient(180deg, #f4efe6, #ffffff);
+        color: #182024;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 24px 80px;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1.2fr 1fr;
+        align-items: start;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(24, 32, 36, 0.1);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 18px 40px rgba(24, 32, 36, 0.08);
+      }
+
+      video {
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      ul {
+        padding-left: 18px;
+      }
+
+      a {
+        color: #0b6c74;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="hero">
+        <section class="card">
+          <h1>Demo page for Video Link Grabber</h1>
+          <p>This page includes a direct MP4 source, a manifest link, metadata, and a plain anchor link so the extension has a realistic page to scan.</p>
+          <video controls poster="https://interactive-examples.mdn.mozilla.net/media/examples/flower.jpg">
+            <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+          </video>
+        </section>
+
+        <aside class="card">
+          <h2>Extra links</h2>
+          <ul>
+            <li><a href="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4">Direct MP4 link</a></li>
+            <li><a href="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">Sample HLS manifest</a></li>
+            <li><a href="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd">Sample DASH manifest</a></li>
+          </ul>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>

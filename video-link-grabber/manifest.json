@@ -1,33 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Video Link Grabber",
-  "version": "1.0.0",
-  "description": "Finds video URLs on the current page and lists them with thumbnails and sizes for easy downloading. Does not bypass DRM.",
+  "version": "1.1.0",
+  "description": "Scans the current tab for video file links, stream manifests, and poster images. Does not bypass DRM.",
   "permissions": [
     "activeTab",
-    "scripting",
-    "storage"
+    "scripting"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "background": {
-    "service_worker": "background.js",
-    "type": "module"
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
   },
   "action": {
     "default_title": "Find videos",
-    "default_popup": "popup.html"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "contentScript.js"
-      ],
-      "run_at": "document_idle"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png"
     }
-  ]
+  }
 }
