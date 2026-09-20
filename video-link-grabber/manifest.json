@@ -1,12 +1,31 @@
 {
   "manifest_version": 3,
   "name": "Video Link Grabber",
-  "version": "1.1.0",
-  "description": "Scans the current tab for video file links, stream manifests, and poster images. Does not bypass DRM.",
+  "version": "1.2.0",
+  "minimum_chrome_version": "111",
+  "description": "Download video links, page-owned blobs and HLS streams with joined audio/video. Does not bypass DRM.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "downloads"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "content_scripts": [{
+    "matches": ["https://x.com/*", "https://*.x.com/*", "https://twitter.com/*", "https://*.twitter.com/*"],
+    "js": ["pageObserver.js"],
+    "run_at": "document_start",
+    "all_frames": true,
+    "world": "MAIN"
+  }],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "icons": {
     "16": "assets/icon16.png",
     "32": "assets/icon32.png",

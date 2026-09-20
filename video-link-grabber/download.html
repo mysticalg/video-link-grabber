@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Download stream · Video Link Grabber</title>
+  <link rel="stylesheet" href="download.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">VIDEO LINK GRABBER</p>
+    <h1>Download stream</h1>
+    <p id="name"></p>
+    <p id="status" role="status" aria-live="polite">Reading the video playlist…</p>
+    <progress id="progress" max="100" aria-label="Download progress"></progress>
+    <p id="detail"></p>
+    <div class="actions">
+      <button id="cancel">Cancel</button>
+      <button id="retry" hidden>Retry</button>
+      <a id="save" hidden>Save video again</a>
+    </div>
+    <p class="help">Keep this tab open while the chunks download and the video and audio are joined. The original media is saved without re-encoding.</p>
+    <details><summary>Source playlist</summary><p id="source"></p></details>
+  </main>
+  <script src="download.js" type="module"></script>
+</body>
+</html>
