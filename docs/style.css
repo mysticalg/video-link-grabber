@@ -45,3 +45,16 @@ footer { max-width: 900px; margin: 50px auto; padding: 0 28px; font-size: 14px; 
   .landing { padding: 0 20px; }
   .hero-art { border-radius: 16px; }
 }
+
+.landing > .platform-downloads { max-width: none; }
+.platform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 28px 0; }
+.platform-card { background: #fff; border: 1px solid #d8e0e9; border-radius: 16px; padding: 24px; }
+.platform-card > img { object-fit: contain; display: block; margin-bottom: 16px; }
+.platform-card h3 { margin: 0; font-size: 23px; }
+.platform-card .button { display: block; text-align: center; padding: 12px; font-size: 14px; }
+.platform-card > p:first-of-type { min-height: 52px; font-size: 14px; }
+.platform-secondary { display: block; margin-top: 14px; text-align: center; }
+.os-inline { object-fit: contain; vertical-align: middle; margin: 0 8px; }
+.install-paths dt { font-weight: 650; margin-top: 18px; }
+.install-paths dd { margin-left: 0; }
+@media (max-width: 800px) { .platform-grid { grid-template-columns: 1fr; } .platform-card > p:first-of-type { min-height: 0; } }

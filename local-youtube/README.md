@@ -1,10 +1,14 @@
-# Video Link Grabber Local 1.4.2
+# Video Link Grabber Local
 
-[Download the Windows installer and read setup instructions](https://mysticalg.github.io/video-link-grabber/local/).
+[Download for Windows, macOS or Linux and read setup instructions](https://mysticalg.github.io/video-link-grabber/local/).
 
-This separate Local edition adds YouTube downloads using a native Windows helper. It also supports X, ordinary videos, page-owned blobs, supported HLS streams, multiple selections and readable filenames. The Chrome Web Store edition is separate and does not use this helper.
+This separate Local edition adds YouTube downloads using a native helper. It also supports X, ordinary videos, page-owned blobs, supported HLS streams, multiple selections and readable filenames. The Chrome Web Store edition is separate and does not use this helper.
 
-## Install once
+## macOS and Linux (1.5.0)
+
+Native installers bundle the required tools: Apple Silicon and Intel Mac PKGs, and Linux x86-64 DEB/RPM packages. See [platform setup, limitations and build documentation](posix/README.md). macOS packages are unsigned and not notarized. Windows remains on 1.4.2.
+
+## Windows installation (1.4.2)
 
 1. Download **Video-Link-Grabber-Local-1.4.2-Setup.exe** from the linked page and run it. Close active download queues first.
 2. Follow the wizard. It installs the helper and extension files in your account. It can install missing Python 3.10+, Node.js 22+ and FFmpeg/FFprobe through Windows Package Manager (WinGet), with your selection in the wizard. Windows may request administrator approval for a dependency. Internet access is required.
