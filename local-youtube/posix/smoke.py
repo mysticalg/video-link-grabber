@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix="vlg installed test ") as temporary:
     assert len(response.stdout) == length + 4, response
     ready = json.loads(response.stdout[4:])
     assert ready["event"] == "ready" and ready["protocol"] == 1, ready
-    assert ready["outputDir"].startswith(temporary), ready
+    assert Path(ready["outputDir"]).is_relative_to(Path(temporary).resolve()), ready
     print("Native framing and per-user configuration: PASS", ready)
     subprocess.run([str(HOST), "--self-test"], check=True, env=env, timeout=30)
     for name, flag in (("node", "--version"), ("ffmpeg", "-version"), ("ffprobe", "-version")):

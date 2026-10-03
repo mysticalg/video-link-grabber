@@ -3,6 +3,7 @@ set -eu
 mkdir -p build-posix
 cd build-posix
 curl --fail --location --retry 3 -o ffmpeg-8.0.1.tar.xz https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz
+echo '05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41  ffmpeg-8.0.1.tar.xz' | shasum -a 256 -c -
 tar -xf ffmpeg-8.0.1.tar.xz
 mv ffmpeg-8.0.1 ffmpeg
 cd ffmpeg

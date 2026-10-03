@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import plistlib
 import shutil
 import subprocess
 import sys
@@ -134,7 +135,11 @@ def main():
           f'<pre>{prefix}/extension</pre><p>The helper and its tools are installed. Downloads go to your Downloads/Video Link Grabber folder.</p>'
           f'<p><a href="https://mysticalg.github.io/video-link-grabber/local/#finish">Full setup instructions</a></p>')
     if MAC:
+        # Treat private Python frameworks as package files, never relocatable system bundles.
+        components = BUILD / "components.plist"
+        components.write_bytes(plistlib.dumps([]))
         run("pkgbuild", "--root", payload, "--identifier", "com.video-link-grabber.local",
+            "--component-plist", components,
             "--version", VERSION, "--install-location", "/", "--ownership", "recommended",
             OUT / f"Video-Link-Grabber-Local-{VERSION}-macOS-{ARCH}.pkg")
     else:
