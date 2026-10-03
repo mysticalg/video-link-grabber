@@ -84,7 +84,8 @@ def safe_title(value):
     title = re.sub(r"\s+", " ", title).strip(" .") or "Video"
     if RESERVED.match(title):
         title = "_" + title
-    while len(title.encode("utf-16-le")) > 300:
+    # Leave room for the collision suffix and .mp4 on 255-byte POSIX filesystems.
+    while len(title.encode("utf-16-le")) > 300 or len(title.encode("utf-8")) > 240:
         title = title[:-1]
     return title.rstrip(" .") or "Video"
 

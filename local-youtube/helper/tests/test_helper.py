@@ -130,6 +130,12 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(safe_title("CON"), "_CON")
         self.assertEqual(safe_title("   ..."), "Video")
         self.assertLessEqual(len(safe_title("🌠" * 200).encode("utf-16-le")), 300)
+        for title in ("星空" * 100, "🌠" * 200):
+            self.assertLessEqual(len(safe_title(title).encode("utf-8")), 240)
+            source = self.output / "unicode-source.mp4"
+            source.write_bytes(b"fixture")
+            saved = publish_file(source, self.output, title)
+            self.assertEqual(saved.read_bytes(), b"fixture")
         original = self.output / "星空.mp4"
         original.write_bytes(b"original")
         for number in (1, 2):

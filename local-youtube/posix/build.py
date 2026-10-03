@@ -114,8 +114,12 @@ def main():
           f"Node.js {node_version}: https://nodejs.org/dist/{node_version}/\n"
           "PyInstaller bootloader: GPL with exception permitting bundled applications.\n")
     import importlib.metadata
-    for package in ("yt-dlp", "yt-dlp-ejs", "certifi", "pyinstaller"):
+    component_packages = ("yt-dlp", "yt-dlp-ejs", "certifi", "pyinstaller", "mutagen", "brotli",
+                          "charset-normalizer", "idna", "pycryptodomex", "requests", "urllib3", "websockets")
+    component_versions = {}
+    for package in component_packages:
         distribution = importlib.metadata.distribution(package)
+        component_versions[package] = distribution.version
         for file in distribution.files or []:
             if any(word in str(file).lower() for word in ("license", "copying")) and distribution.locate_file(file).is_file():
                 dest = licenses / package / str(file).replace("../", "")
@@ -124,6 +128,9 @@ def main():
     python_license = Path(sys.base_prefix) / "LICENSE.txt"
     if python_license.exists():
         shutil.copy2(python_license, licenses / "Python-LICENSE.txt")
+    else:
+        fetch(f"https://raw.githubusercontent.com/python/cpython/v{platform.python_version()}/LICENSE",
+              licenses / "Python-LICENSE.txt")
     manifest = dict(name=HOST, description="Video Link Grabber Local helper", path=str(prefix / "helper/vlg-host"),
                     type="stdio", allowed_origins=["chrome-extension://" + json.loads((LOCAL / "identity.json").read_text())["extensionId"] + "/"])
     locations = (["Library/Google/Chrome/NativeMessagingHosts", "Library/Application Support/Chromium/NativeMessagingHosts"]
@@ -169,7 +176,8 @@ def main():
         shutil.copy2(next((rpmroot / "RPMS").rglob("*.rpm")), OUT / f"video-link-grabber-local-{VERSION}-linux-x64.rpm")
     write(OUT / f"components-{'macOS' if MAC else 'linux'}-{ARCH}.json", json.dumps({
         "version": VERSION, "node": node_version, "nodeSha256": expected, "ffmpeg": "8.0.1",
-        "platform": platform.platform(), "python": sys.version}, indent=2))
+        "platform": platform.platform(), "python": sys.version,
+        "packages": component_versions}, indent=2))
 
 
 if __name__ == "__main__":
