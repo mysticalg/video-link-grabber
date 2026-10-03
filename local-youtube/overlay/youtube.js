@@ -65,7 +65,7 @@ async function run() {
       summarize();
     }
   } catch (error) {
-    $("helperStatus").textContent = error?.message || "The local helper is unavailable. Download the helper below, extract it and run Install helper.cmd, then retry.";
+    $("helperStatus").textContent = error?.message || "The local helper is unavailable. Use Download helper to run the Windows installer, then retry.";
     $("helperStatus").className = "error";
     $("helperSetup").hidden = controller.signal.aborted;
     for (const row of rows) {

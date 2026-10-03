@@ -6,6 +6,14 @@ function Find-HelperTool {
     if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { continue }
     if ($Kind -eq 'python' -and $candidate -match '\\WindowsApps\\') { continue }
     try {
+      # WinGet's executable links can fail in a hidden Windows PowerShell process.
+      # Run the real executable and locate FFprobe beside it instead.
+      for ($depth = 0; $depth -lt 8; $depth++) {
+        $item = Get-Item -LiteralPath $candidate -ErrorAction Stop
+        if ($item.LinkType -ne 'SymbolicLink' -or -not $item.Target) { break }
+        $target = @($item.Target)[0]
+        $candidate = if ([IO.Path]::IsPathRooted($target)) { $target } else { Join-Path $item.DirectoryName $target }
+      }
       [string[]]$arguments = if ($Kind -eq 'ffmpeg') { @('-version') } else { @('--version') }
       $versionLines = @(& $candidate @arguments 2>&1)
       $code = $LASTEXITCODE

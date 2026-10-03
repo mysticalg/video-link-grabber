@@ -48,7 +48,7 @@ Name: "{group}\Repair helper"; Filename: "{app}\installer\Install helper.cmd"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "https://mysticalg.github.io/video-link-grabber/local/#finish"; Description: "Show the final Chrome setup step"; Flags: postinstall shellexec skipifsilent
+Filename: "https://mysticalg.github.io/video-link-grabber/local/#finish"; Description: "Show the final Chrome setup step"; Flags: postinstall shellexec skipifsilent; Check: HelperReady
 
 [UninstallRun]
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer\Uninstall helper.ps1"""; Flags: runhidden; RunOnceId: UnregisterNativeHelper
@@ -56,8 +56,22 @@ Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\runtime"
 Type: filesandordirs; Name: "{app}\helper"
+Type: files; Name: "{app}\installer\setup.log"
 
 [Code]
+var
+  HelperSucceeded: Boolean;
+
+function HelperReady: Boolean;
+begin
+  Result := HelperSucceeded;
+end;
+
+function GetCustomSetupExitCode: Integer;
+begin
+  if HelperSucceeded then Result := 0 else Result := 1;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   Parameters: String;
@@ -69,10 +83,14 @@ begin
     Parameters := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\installer\Setup.ps1') + '" -NoPrompt';
     if WizardIsTaskSelected('dependencies') then
       Parameters := Parameters + ' -InstallMissingDependencies';
-    if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Parameters,
-      '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-      RaiseException('Could not start helper setup. Run Repair helper from the Start menu.');
-    if ResultCode <> 0 then
-      RaiseException('Helper setup did not finish. Check your internet connection and required tools, then run Repair helper from the Start menu. The helper is not ready yet.');
+    HelperSucceeded := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Parameters,
+      '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    HelperSucceeded := HelperSucceeded and (ResultCode = 0);
+    if not HelperSucceeded then
+    begin
+      WizardForm.FinishedHeadingLabel.Caption := 'Helper setup needs attention';
+      WizardForm.FinishedLabel.Caption := 'The files were installed, but the helper is not ready. Run Repair helper from the Start menu to see the error and retry. Details are in installer\setup.log inside the installation folder.';
+      MsgBox('The helper is not ready. Run Repair helper from the Start menu to see the error and retry.', mbError, MB_OK);
+    end;
   end;
 end;
