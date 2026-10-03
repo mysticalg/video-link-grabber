@@ -14,7 +14,10 @@ with tempfile.TemporaryDirectory(prefix="vlg-browser-") as profile, sync_playwri
     try:
         worker = context.service_workers[0] if context.service_workers else context.wait_for_event("serviceworker")
         assert "okjbebimalnjjaladdnpnjpjfmbjeefl" in worker.url, worker.url
-        result = worker.evaluate('''() => new Promise(resolve => {
+        page = context.new_page()
+        page.goto("chrome-extension://okjbebimalnjjaladdnpnjpjfmbjeefl/popup.html")
+        page.wait_for_function("typeof chrome.runtime?.sendNativeMessage === 'function'")
+        result = page.evaluate('''() => new Promise(resolve => {
           chrome.runtime.sendNativeMessage('com.video_link_grabber.youtube', {cmd:'ping'}, reply => {
             resolve(chrome.runtime.lastError ? {error:chrome.runtime.lastError.message} : reply);
           });

@@ -59,6 +59,17 @@ jobs:
           python -m pip install 'playwright==1.55.0'
           python -m playwright install --with-deps chromium
           python local-youtube/posix/browser_smoke.py
+      - name: Test RPM in Fedora
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          docker run --rm -v "$PWD/dist-posix:/packages:ro" -v "$PWD/local-youtube/posix:/tests:ro" fedora:43 bash -ec '
+            dnf install -y python3 /packages/*.rpm
+            python3 /tests/rpm_smoke.py
+            dnf remove -y video-link-grabber-local
+            test ! -e /opt/video-link-grabber-local/helper/vlg-host
+            test ! -e /etc/opt/chrome/native-messaging-hosts/com.video_link_grabber.youtube.json
+          '
       - name: Preserve source and build configuration
         shell: bash
         run: |
