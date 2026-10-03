@@ -21,3 +21,27 @@ code { background: #e6edf6; border-radius: 4px; padding: 3px 6px; font-size: .9e
 details { padding: 16px 0; border-bottom: 1px solid #e0e6ed; } summary { cursor: pointer; font-weight: 650; }
 footer { max-width: 900px; margin: 50px auto; padding: 0 28px; font-size: 14px; color: #526781; }
 @media(max-width: 560px) { main { margin-top: 36px; } header nav { align-items: start; } .actions { align-items: start; flex-direction: column; gap: 14px; } }
+
+/* Shared imagegen identity and landing artwork. */
+.brand { display: inline-flex; align-items: center; gap: 10px; line-height: 1.25; }
+.brand-mark { display: block; flex: 0 0 48px; width: 48px; height: 48px; }
+.edition { display: inline-block; margin-left: 5px; color: #526781; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.landing { max-width: 1140px; }
+.hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; align-items: center; margin-bottom: 64px; }
+.hero-copy { min-width: 0; }
+.eyebrow { margin: 0 0 20px; color: #225dae; font-weight: 750; font-size: 11px; letter-spacing: .16em; }
+.hero-art { display: block; width: 100%; height: auto; border-radius: 24px; }
+.landing > section { max-width: 844px; margin-left: auto; margin-right: auto; }
+#support .actions { margin-bottom: 20px; }
+@media (max-width: 800px) {
+  .hero { grid-template-columns: 1fr; gap: 20px; margin-bottom: 36px; }
+  .hero-art { max-width: 540px; margin: 0 auto; }
+}
+@media (max-width: 560px) {
+  header nav { padding: 16px 20px; align-items: center; gap: 12px; }
+  .brand { font-size: 14px; gap: 7px; }
+  .brand-mark { width: 40px; height: 40px; flex-basis: 40px; }
+  .edition { display: block; margin: 4px 0 0; font-size: 10px; }
+  .landing { padding: 0 20px; }
+  .hero-art { border-radius: 16px; }
+}
