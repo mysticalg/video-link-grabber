@@ -1,0 +1,68 @@
+name: Build macOS and Linux installers
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            label: linux-x64
+          - os: macos-14
+            label: macOS-arm64
+          - os: macos-15-intel
+            label: macOS-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build prerequisites
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y build-essential rpm ffmpeg
+          else
+            brew install ffmpeg
+          fi
+          python -m pip install 'pyinstaller==6.16.0' -r local-youtube/requirements.txt
+      - name: Regression tests
+        shell: bash
+        run: |
+          python -m unittest discover -s local-youtube/helper/tests -v
+          node --test video-link-grabber/tests/*.test.* local-youtube/tests/*.test.*
+      - name: Build bundled media tools
+        run: sh local-youtube/posix/build-ffmpeg.sh
+      - name: Build native installers
+        run: python local-youtube/posix/build.py
+      - name: Install package and test installed helper
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            sudo installer -pkg dist-posix/*.pkg -target /
+          else
+            sudo dpkg -i dist-posix/*.deb
+          fi
+          python local-youtube/posix/smoke.py
+      - name: Preserve source and build configuration
+        shell: bash
+        run: |
+          cp build-posix/ffmpeg-*.tar.xz dist-posix/
+          cp build-posix/ffmpeg-config.txt dist-posix/ffmpeg-config-${{ matrix.label }}.txt
+          cp local-youtube/posix/build-ffmpeg.sh dist-posix/
+          cd dist-posix
+          shasum -a 256 * > SHA256SUMS-${{ matrix.label }}.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.label }}
+          path: dist-posix/
+          if-no-files-found: error

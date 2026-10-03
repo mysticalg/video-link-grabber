@@ -197,8 +197,10 @@ class NativeHost:
             process = None
             tree = None
             try:
+                worker_command = ([sys.executable, "--worker"] if getattr(sys, "frozen", False)
+                                  else [config["pythonPath"], "-I", "-S", "-u", str(self.worker_path)])
                 process = subprocess.Popen(
-                    [config["pythonPath"], "-I", "-S", "-u", str(self.worker_path), "--request-id", message["requestId"],
+                    worker_command + ["--request-id", message["requestId"],
                      "--video-id", message["videoId"], "--config", str(self.config_path), "--workdir", str(workdir)],
                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                     cwd=str(self.worker_path.parent), shell=False,
