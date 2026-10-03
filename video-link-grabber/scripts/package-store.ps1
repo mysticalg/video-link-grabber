@@ -10,7 +10,8 @@ if ($manifest.description.Length -gt 132) { throw 'Manifest description exceeds 
 $runtimeNames = @(
   'manifest.json', 'background.js', 'contentScript.js', 'pageObserver.js',
   'mediaUtils.js', 'hls.js', 'popup.html', 'popup.css', 'popup.js',
-  'download.html', 'download.css', 'download.js'
+  'download.html', 'download.css', 'download.js', 'streamDownload.js',
+  'batch.html', 'batch.css', 'batch.js', 'batchUtils.js'
 )
 if ($manifest.icons) { $runtimeNames += @($manifest.icons.PSObject.Properties.Value) }
 if ($manifest.action.default_icon -is [string]) { $runtimeNames += $manifest.action.default_icon }

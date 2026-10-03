@@ -7,6 +7,14 @@ header { display: flex; flex-wrap: wrap; align-items: center; justify-content: s
 header > div { flex: 1 1 180px; min-width: 0; }
 h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.35px; }
 .sub { margin: 4px 0 0; font-size: 11px; color: #607088; }
+.helperStatus { margin: 0 0 12px; padding: 8px 10px; border-radius: 7px; background: #edf3fb; font-size: 11px; line-height: 1.5; color: #41618d; overflow-wrap: anywhere; }
+.helperStatus.ready { background: #edf7f0; color: #285e47; }
+.helperStatus.error { background: #fff0ee; color: #a23332; }
+.helperSetup { margin: -4px 0 14px; font-size: 11px; line-height: 1.5; }
+.helperSetup a { display: inline-block; padding: 7px 10px; border-radius: 7px; background: #225dae; color: #fff; font-weight: 600; text-decoration: none; }
+.helperSetup a:hover { background: #194b91; }
+.helperSetup p { margin: 6px 0 0; color: #536781; }
+footer a { color: #225dae; }
 button, .actions a { font: inherit; font-size: 12px; line-height: 1.35; border: 1px solid #d8e0e9; border-radius: 7px; color: #293c54; background: #fff; padding: 7px 10px; cursor: pointer; text-decoration: none; white-space: nowrap; }
 button:hover, .actions a:hover { background: #edf3fb; border-color: #b4c6de; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #8dbbf9; outline-offset: 2px; }

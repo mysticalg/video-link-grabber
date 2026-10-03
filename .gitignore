@@ -1,1 +1,5 @@
 /releases/
+/local-youtube/runtime/
+/local-youtube/extension/
+/local-youtube/helper/config.json
+**/__pycache__/

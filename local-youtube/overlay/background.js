@@ -1,5 +1,7 @@
 import { pageAction } from "./contentScript.js";
 import { prepareBatch } from "./batchUtils.js";
+import { scanYouTubePage } from "./youtubeScan.js";
+import { prepareYouTubeQueue, validateYouTubeItem } from "./youtubeUtils.js";
 import {
   filenameForMedia, formatBytes, isExtensionUiSender, isManifest,
   probeHttpMedia, validateMediaItem, validateTabId,
@@ -11,6 +13,10 @@ const COMMANDS = new Set([
 
 // Page scripts return metadata; blob bytes and recording state stay in their document.
 export function createMessageHandler({ chromeApi = globalThis.chrome, fetchImpl = globalThis.fetch, action = pageAction } = {}) {
+  async function openYouTubeQueue(items) {
+    const params = new URLSearchParams({ items: JSON.stringify(items) });
+    await chromeApi.tabs.create({ url: `${chromeApi.runtime.getURL("youtube.html")}#${params}` });
+  }
   async function inDocument(tabId, item, command) {
     const results = await chromeApi.scripting.executeScript({
       target: { tabId, documentIds: [item.documentId] }, world: "MAIN", func: action, args: [command, item],
@@ -30,17 +36,47 @@ export function createMessageHandler({ chromeApi = globalThis.chrome, fetchImpl 
     try {
       const tabId = validateTabId(message.tabId);
       if (message.cmd === "DOWNLOAD_BATCH") {
+        if (Array.isArray(message.items) && message.items.some(item => item?.platform === "youtube")) {
+          if (message.items.length > 100) throw new Error("Select up to 100 videos.");
+          const youtubeItems = prepareYouTubeQueue(message.items.filter(item => item?.platform === "youtube"));
+          const otherItems = message.items.filter(item => item?.platform !== "youtube");
+          const otherBatch = otherItems.length ? prepareBatch(tabId, otherItems) : null;
+          await openYouTubeQueue(youtubeItems);
+          if (otherBatch) await chromeApi.tabs.create({ url: `${chromeApi.runtime.getURL("batch.html")}#${otherBatch.fragment}` });
+          return { ok: true, count: youtubeItems.length + (otherBatch?.items.length || 0), message: "Selected videos opened in download queues. Keep the queue tabs open. YouTube uses the local helper." };
+        }
         const batch = prepareBatch(tabId, message.items);
         await chromeApi.tabs.create({ url: `${chromeApi.runtime.getURL("batch.html")}#${batch.fragment}` });
         return { ok: true, count: batch.items.length, message: `${batch.items.length} videos added to a download queue. Keep the queue tab open.` };
       }
       if (message.cmd === "SCAN_TAB") {
+        const youtubeFrames = await chromeApi.scripting.executeScript({
+          target: { tabId, allFrames: true }, world: "MAIN", func: scanYouTubePage,
+        });
+        const mainYouTubeFrame = youtubeFrames.find(frame => frame.frameId === 0 && frame.result?.isYouTube);
+        const youtubeItems = [];
+        const youtubeIds = new Set();
+        const youtubeDocuments = new Set();
+        for (const frame of mainYouTubeFrame ? [mainYouTubeFrame] : youtubeFrames) {
+          if (!frame.result?.isYouTube) continue;
+          youtubeDocuments.add(frame.documentId);
+          for (const candidate of frame.result.items || []) {
+            try {
+              const item = validateYouTubeItem(candidate);
+              if (!youtubeIds.has(item.youtubeId)) { youtubeItems.push(item); youtubeIds.add(item.youtubeId); }
+            } catch { /* ignore invalid page metadata */ }
+          }
+        }
+        if (mainYouTubeFrame) {
+          return { ok: true, items: youtubeItems.slice(0, 100), platform: "youtube" };
+        }
         const results = await chromeApi.scripting.executeScript({
           target: { tabId, allFrames: true }, world: "MAIN", func: action, args: ["SCAN"],
         });
         const seen = new Set();
-        const items = [];
+        const items = [...youtubeItems];
         for (const frame of results) {
+          if (youtubeDocuments.has(frame.documentId)) continue;
           if (!frame.result?.ok || !Array.isArray(frame.result.items) || !frame.documentId) continue;
           for (const candidate of frame.result.items) {
             try {
@@ -57,6 +93,13 @@ export function createMessageHandler({ chromeApi = globalThis.chrome, fetchImpl 
         return { ok: true, items };
       }
 
+      if (message.item?.platform === "youtube") {
+        const item = validateYouTubeItem(message.item);
+        if (message.cmd === "PROBE_MEDIA") return { ok: true, kind: "youtube", type: "youtube", filename: item.filename, canRecord: false };
+        if (message.cmd !== "DOWNLOAD_MEDIA") throw new Error("Use Download for YouTube videos in this local build.");
+        await openYouTubeQueue([item]);
+        return { ok: true, kind: "youtube", message: "YouTube download opened in a new tab. Keep it open; the local helper saves the file." };
+      }
       let item = validateMediaItem(message.item);
       const pageOwned = !item.url || item.isBlob || item.isData;
       let pageStatus = {};

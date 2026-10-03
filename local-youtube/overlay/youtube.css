@@ -1,0 +1,10 @@
+#helperStatus { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.helperSetup { margin: 16px 0; padding: 16px; border: 1px solid #c8d4e5; border-radius: 10px; }
+.helperSetup a { display: inline-block; padding: 10px 16px; border-radius: 8px; background: #235bd7; color: #fff; text-decoration: none; }
+.helperSetup a:hover { background: #194baa; }
+.helperSetup p { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: #526480; }
+details a { color: #235bd7; }
+#outputDir, .saved-path { overflow-wrap: anywhere; }
+.saved-path { font-size: 12px; line-height: 1.5; color: #526480; }
+button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #8dbbf9; outline-offset: 3px; }
+@media (prefers-color-scheme: dark) { .saved-path, .helperSetup p { color: #b3c2d8; } details a { color: #a6c5ff; } .helperSetup { border-color: #34445c; } }

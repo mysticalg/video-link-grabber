@@ -3,18 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Video Link Grabber</title>
+    <title>Video Link Grabber Local</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <header>
       <div>
-        <h1>Video Link Grabber</h1>
-        <p class="sub">Find video sources and save them locally.</p>
+        <h1>Video Link Grabber Local</h1>
+        <p class="sub"><strong id="buildLabel">Local build</strong> · YouTube enabled</p>
       </div>
       <button id="scanBtn" type="button" title="Rescan the current page">Rescan</button>
     </header>
     <main>
+      <p id="helperStatus" class="helperStatus" role="status" aria-live="polite" hidden></p>
+      <div id="helperSetup" class="helperSetup" hidden>
+        <a href="https://mysticalg.github.io/video-link-grabber/local/" target="_blank" rel="noopener noreferrer">Download helper</a>
+        <p>Download the ZIP from the release page, extract it, then run <strong>Install helper.cmd</strong>.</p>
+      </div>
       <div class="listHeading">
         <span>ON THIS PAGE</span>
         <span id="resultCount" aria-live="polite"></span>
@@ -52,7 +57,7 @@
         </li>
       </template>
     </main>
-    <footer><a href="https://mysticalg.github.io/video-link-grabber/" target="_blank" rel="noopener noreferrer">Help and setup</a> · Only save content you have permission to download. DRM is not supported. On X, play the video before scanning.</footer>
+    <footer><a href="https://mysticalg.github.io/video-link-grabber/local/" target="_blank" rel="noopener noreferrer">Helper download and setup</a> · Run the Windows installer once for YouTube downloads. Only save content you have permission to download. DRM is not supported.</footer>
     <script src="popup.js" type="module"></script>
   </body>
 </html>

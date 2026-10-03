@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Download videos · Video Link Grabber</title>
+  <link rel="stylesheet" href="download.css">
+  <link rel="stylesheet" href="batch.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">VIDEO LINK GRABBER</p>
+    <h1>Download videos</h1>
+    <p id="summary" role="status" aria-live="polite">Preparing your selected videos…</p>
+    <div class="actions">
+      <button id="cancel" hidden>Cancel remaining</button>
+      <button id="retry" hidden>Retry unfinished</button>
+    </div>
+    <p class="help">Keep this queue tab open. You can close the popup. Videos download one at a time into your Chrome downloads folder. Keep the original page open for page-owned blobs. Chrome may ask you to allow multiple downloads.</p>
+    <ol id="queue" aria-label="Selected videos"></ol>
+  </main>
+  <script src="batch.js" type="module"></script>
+</body>
+</html>

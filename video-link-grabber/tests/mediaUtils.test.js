@@ -75,6 +75,28 @@ test("filenames cannot escape Downloads or use Windows reserved names", () => {
   assert.equal(filenameForMedia({ filename: "clip.webm", type: "video/webm" }), "clip.webm");
 });
 
+test("filenames preserve Unicode while removing URL and bidirectional/control tricks", () => {
+  assert.equal(sanitizeFilename("星空 cafe\u0301 🌠 https://t.co/abc \u202emp4\u2066"), "星空 café 🌠 mp4");
+  assert.equal(sanitizeFilename("LPT¹.mp4"), "_LPT¹.mp4");
+  const long = sanitizeFilename(`${"🌠".repeat(100)}.mp4`);
+  assert.ok(long.length <= 180);
+  assert.equal(long.isWellFormed(), true);
+  assert.match(long, /\.mp4$/);
+});
+
+test("actual media output replaces old suffixes instead of adding duplicate extensions", () => {
+  assert.equal(filenameForMedia({ filename: "日食.mp4", type: "video/webm; codecs=vp9" }), "日食.webm");
+  assert.equal(filenameForMedia({ filename: "日食.m3u8", type: "application/vnd.apple.mpegurl", outputExtension: "mp4" }), "日食.mp4");
+  assert.equal(filenameForMedia({ filename: "日食.webm", url: "https://example.test/file.webm" }), "日食.webm");
+  assert.equal(filenameForMedia({ url: "blob:https://example.test/secret-uuid" }), "video");
+});
+
+test("post-derived filenames survive media message validation safely", () => {
+  const filename = "星空の動画";
+  const item = validateMediaItem({ filename, url: "blob:https://x.com/blob-id", videoId: "video-2", documentId: "doc-1", directUrl: "https://video.twimg.com/clip.mp4" });
+  assert.equal(item.filename, `${filename}.mp4`);
+});
+
 test("only our extension UI can request privileged worker operations", () => {
   const good = { id: "abc", url: "chrome-extension://abc/popup.html" };
   assert.equal(isExtensionUiSender(good, "abc"), true);

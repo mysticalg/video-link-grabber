@@ -1,3 +1,5 @@
+import { YouTubeNativeClient } from "./youtubeNative.js";
+
 const results = document.getElementById("results");
 const status = document.getElementById("status");
 const scanButton = document.getElementById("scanBtn");
@@ -8,6 +10,10 @@ const selectAll = document.getElementById("selectAll");
 const selectionCount = document.getElementById("selectionCount");
 const downloadSelected = document.getElementById("downloadSelected");
 const selectionStatus = document.getElementById("selectionStatus");
+const helperStatus = document.getElementById("helperStatus");
+const helperSetup = document.getElementById("helperSetup");
+document.getElementById("buildLabel").textContent = `v${chrome.runtime.getManifest().version}`;
+let helperProbe = null;
 const selectedSources = new Set();
 const MAX_SELECTION = 100;
 let scanGeneration = 0;
@@ -28,6 +34,29 @@ function setStatus(message, error = false) {
   status.classList.toggle("error", error);
 }
 
+async function checkYouTubeHelper(generation) {
+  const client = new YouTubeNativeClient({ handshakeMs: 3000 });
+  helperProbe = client;
+  helperStatus.hidden = false;
+  helperStatus.className = "helperStatus";
+  helperStatus.textContent = "Checking YouTube helper…";
+  helperSetup.hidden = true;
+  try {
+    await client.connect();
+    if (generation !== scanGeneration) return;
+    helperStatus.className = "helperStatus ready";
+    helperStatus.textContent = "YouTube helper ready";
+  } catch {
+    if (generation !== scanGeneration) return;
+    helperStatus.className = "helperStatus error";
+    helperStatus.textContent = "Helper unavailable. Download and install the helper below.";
+    helperSetup.hidden = false;
+  } finally {
+    client.close();
+    if (helperProbe === client) helperProbe = null;
+  }
+}
+
 function formatBytes(value) {
   const bytes = Number(value);
   if (!Number.isFinite(bytes) || bytes <= 0) return "";
@@ -39,6 +68,7 @@ function formatBytes(value) {
 function humanType(value) {
   const type = String(value || "").split(";")[0].toLowerCase();
   const types = {
+    youtube: "YouTube",
     mp4: "MP4", "video/mp4": "MP4", webm: "WebM", "video/webm": "WebM",
     ogg: "Ogg", ogv: "Ogg", "video/ogg": "Ogg", mov: "QuickTime", "video/quicktime": "QuickTime",
     m4v: "M4V", mkv: "Matroska", m3u8: "HLS playlist", "application/vnd.apple.mpegurl": "HLS playlist",
@@ -121,7 +151,7 @@ function updateRow(row, refreshSelection = true) {
   if (!row.open.hidden) row.open.href = source;
   row.copy.hidden = !source;
   row.element.classList.toggle("recording", row.recording);
-  row.badge.textContent = row.recording ? "Recording" : item.directUrl ? "Video file" :
+  row.badge.textContent = item.platform === "youtube" ? "YouTube · local helper" : row.recording ? "Recording" : item.directUrl ? "Video file" :
     item.streamUrl ? "Stream download" : row.kind === "pending" ? "Checking source" :
     row.kind === "stream" ? "Stream" : row.kind === "unavailable" ? "Unavailable" :
     item.isManifest || row.kind === "manifest" ? "Playlist" : row.kind === "blob" ? "Blob file" : "Video file";
@@ -131,7 +161,8 @@ function updateRow(row, refreshSelection = true) {
   row.size.hidden = !row.size.textContent;
 
   let help = "";
-  if (row.recording) help = "Recording from playback. Keep this page open. Stop here or use the control on the page to save.";
+  if (item.platform === "youtube") help = "Saves video and audio with the local helper. Install it once, then keep the download queue tab open.";
+  else if (row.recording) help = "Recording from playback. Keep this page open. Stop here or use the control on the page to save.";
   else if (item.streamUrl && !item.directUrl) help = "Downloads media chunks into an MP4. Keep the progress tab open until it finishes.";
   else if (row.kind === "stream" && !item.directUrl) help = "Play the video and Rescan. If needed, refresh X after reloading the extension.";
   else if (row.kind === "blob") help = "Keep the video page open until the download starts.";
@@ -298,7 +329,7 @@ function renderItems(items, tabId, generation) {
   setSelectionStatus();
   count.textContent = `${items.length} ${items.length === 1 ? "source" : "sources"} found`;
   if (!items.length) {
-    setStatus("No video sources found. Start playing a video, then Rescan.");
+    setStatus("No video sources found. Open or play a video, then Rescan. On YouTube lists, scroll the videos you want into view.");
     updateSelection();
     return;
   }
@@ -359,6 +390,9 @@ function renderItems(items, tabId, generation) {
 async function scan() {
   if (batchStarting) return;
   const generation = ++scanGeneration;
+  helperProbe?.close();
+  helperStatus.hidden = true;
+  helperSetup.hidden = true;
   scanning = true;
   selectedSources.clear();
   setSelectionStatus();
@@ -373,7 +407,9 @@ async function scan() {
     const response = await request("SCAN_TAB", tab.id);
     if (generation !== scanGeneration) return;
     if (!response.ok) throw new Error(response.error || "Cannot scan this page. Refresh it and try again. Browser settings and other restricted pages cannot be scanned.");
-    renderItems(Array.isArray(response.items) ? response.items : [], tab.id, generation);
+    const items = Array.isArray(response.items) ? response.items : [];
+    renderItems(items, tab.id, generation);
+    if (response.platform === "youtube" || items.some(item => item.platform === "youtube")) void checkYouTubeHelper(generation);
   } catch (error) {
     if (generation !== scanGeneration) return;
     rows = [];
@@ -393,6 +429,7 @@ async function scan() {
 }
 
 scanButton.addEventListener("click", () => { void scan(); });
+window.addEventListener("pagehide", () => helperProbe?.close());
 selectAll.addEventListener("change", () => {
   if (scanning || batchStarting) return;
   selectedSources.clear();

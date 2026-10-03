@@ -28,15 +28,19 @@ export function validateUrl(value, { allowEmpty = false, httpOnly = false } = {}
 
 export function sanitizeFilename(value, fallback = "video") {
   let filename = String(value || fallback)
-    .replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g, "_")
+    .normalize("NFC")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, "")
+    .replace(/[<>:"/\\|?*\u0000-\u001f\u007f-\u009f]/g, "_")
+    .replace(/\s+/g, " ")
     .replace(/^\.+/, "")
     .replace(/[.\s]+$/g, "")
     .trim();
-  if (!filename) filename = fallback;
-  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(filename)) filename = `_${filename}`;
+  if (!filename) filename = "video";
+  if (/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/i.test(filename)) filename = `_${filename}`;
   if (filename.length > 180) {
     const suffix = filename.match(/\.[a-z0-9]{1,12}$/i)?.[0] || "";
-    filename = filename.slice(0, 180 - suffix.length).replace(/[.\s]+$/g, "") + suffix;
+    filename = filename.slice(0, 180 - suffix.length).replace(/[\ud800-\udbff]$/u, "").replace(/[.\s]+$/g, "") + suffix;
   }
   return filename;
 }
@@ -60,7 +64,10 @@ export function isHls(url, type = "") {
 export function filenameForMedia(item) {
   let filename = item.filename;
   if (!filename && item.url) {
-    try { filename = decodeURIComponent(new URL(item.url).pathname.split("/").pop()); } catch { /* use fallback */ }
+    try {
+      const url = new URL(item.url);
+      if (/^https?:$/.test(url.protocol)) filename = decodeURIComponent(url.pathname.split("/").pop());
+    } catch { /* use fallback */ }
   }
   filename = sanitizeFilename(filename, item.isManifest ? "playlist" : "video");
   const type = String(item.type || "").split(";")[0].trim().toLowerCase();
@@ -68,8 +75,11 @@ export function filenameForMedia(item) {
   if (item.directUrl) {
     try { directExtension = new URL(item.directUrl).pathname.match(/\.(mp4|webm|ogv|ogg|mov|m4v|mkv)$/i)?.[1]?.toLowerCase() || ""; } catch { /* validation happens at the message boundary */ }
   }
-  const extension = directExtension || MIME_EXTENSIONS[type] || (/^(mp4|webm|ogv|ogg|mov|m4v|mkv|m3u8|mpd)$/.test(type) ? type : "");
-  if (directExtension && VIDEO_EXTENSIONS.test(filename)) filename = filename.replace(VIDEO_EXTENSIONS, `.${directExtension}`);
+  let urlExtension = "";
+  try { urlExtension = new URL(item.url).pathname.match(VIDEO_EXTENSIONS)?.[1]?.toLowerCase() || ""; } catch { /* a stream may not have a URL */ }
+  const outputExtension = /^(mp4|webm|ogv|ogg|mov|m4v|mkv)$/i.test(item.outputExtension || "") ? item.outputExtension.toLowerCase() : "";
+  const extension = outputExtension || directExtension || MIME_EXTENSIONS[type] || (/^(mp4|webm|ogv|ogg|mov|m4v|mkv|m3u8|mpd)$/.test(type) ? type : "") || urlExtension;
+  if (extension && VIDEO_EXTENSIONS.test(filename)) filename = filename.replace(VIDEO_EXTENSIONS, `.${extension}`);
   else if (extension && !VIDEO_EXTENSIONS.test(filename)) filename = sanitizeFilename(`${filename}.${extension}`);
   return filename;
 }

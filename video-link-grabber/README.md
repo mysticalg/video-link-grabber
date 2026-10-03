@@ -2,6 +2,16 @@
 
 A Chrome Manifest V3 extension that finds video sources, downloads ordinary files and file-backed blobs, and downloads supported HLS streams by joining their media chunks into an MP4. Playback recording is an optional fallback.
 
+## Download several videos
+
+Select the checkbox beside each video, or use **Select all**, then click **Download selected**. Up to 100 videos run in one queue tab, one at a time. You can close the popup; keep the queue tab and original video page open. Duplicate sources are collapsed, and batch downloads use Chrome's download folder without a separate Save As prompt for each file.
+
+The queue shows completed downloads and individual failures. **Cancel remaining** stops the current tracked download and the waiting videos. **Retry unfinished** retries failed or cancelled items without restarting completed downloads. Page-owned blob saves are marked **Requested in page** because the page handles them; check Chrome downloads and allow multiple downloads if Chrome prompts. A blob save already requested cannot be recalled by cancelling the queue. Closing or reloading the queue interrupts its work; the queue is not restored automatically.
+
+## Readable filenames
+
+On X/Twitter, names use the video's own post text, such as `Sunset over the harbour.mp4`. Quoted posts use their own text. Usernames, post IDs, and media-number suffixes are not added to filenames. Other pages use a video title, accessible label, caption, or page title when available. The popup opens at a fixed 520-pixel width. Names appear beneath each thumbnail across the full card width before downloading, preserve Unicode, and are cleaned for safe filenames. The extension does not analyze video frames or send content to an AI service. If no useful text is available, it falls back to the source name. Chrome adds a number when a saved filename already exists.
+
 ## Install or update
 
 1. Use Chrome 111 or later. Open `chrome://extensions` and turn on **Developer mode**.
@@ -33,6 +43,8 @@ Keep the video page open and the video playing. Use **Stop & save** in the popup
 - Matches X player blobs to discovered media sources and supports finite, unencrypted HLS video downloads, including byte ranges and separate audio tracks.
 - Downloads stream chunks and remuxes them locally into MP4 using bundled FFmpeg, preserving the encoded audio and video quality.
 - Offers playback recording for compatible streams, with explicit start and stop controls.
+- Selects up to 100 videos into a persistent download queue with progress, cancellation, and retry.
+- Names files using the relevant post or video context, with the correct extension for the downloaded media.
 - Shows file types, available sizes, thumbnail previews, and per-source errors.
 - Limits concurrent source checks and ignores old scan results when rescanning.
 

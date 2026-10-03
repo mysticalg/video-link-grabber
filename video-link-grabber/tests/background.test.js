@@ -26,6 +26,40 @@ function fixture() {
   return { calls, chromeApi, handle: createMessageHandler({ chromeApi, fetchImpl, action: () => {} }) };
 }
 
+test("selected downloads open one persistent queue rather than launching files from the popup", async () => {
+  const { calls, handle } = fixture();
+  const response = await handle({ cmd: "DOWNLOAD_BATCH", tabId: 10, items: [blobItem,
+    { ...blobItem, videoId: "v2", url: "https://example.test/second.mp4", filename: "Second post.mp4" },
+  ] }, sender);
+  assert.equal(response.ok, true);
+  assert.equal(response.count, 2);
+  assert.equal(calls.tabs.length, 1);
+  const target = new URL(calls.tabs[0].url);
+  assert.equal(target.pathname, "/batch.html");
+  assert.equal(JSON.parse(new URLSearchParams(target.hash.slice(1)).get("items")).length, 2);
+  assert.equal(calls.downloads.length, 0);
+});
+
+test("batch direct files suppress Save As and stream items stay in the same queue", async () => {
+  const { calls, handle } = fixture();
+  const direct = await handle({ cmd: "DOWNLOAD_MEDIA", batch: true, tabId: 10,
+    item: { ...blobItem, directUrl: "https://example.test/full.mp4" } }, sender);
+  assert.equal(direct.downloadId, 42);
+  assert.equal(calls.downloads[0].saveAs, false);
+  const hls = await handle({ cmd: "DOWNLOAD_MEDIA", batch: true, tabId: 10,
+    item: { ...blobItem, streamUrl: "https://example.test/master.m3u8" } }, sender);
+  assert.equal(hls.kind, "hls");
+  assert.equal(hls.streamUrl, "https://example.test/master.m3u8");
+  assert.equal(calls.tabs.length, 0);
+});
+
+test("invalid batch and untrusted callers cannot open a queue", async () => {
+  const { calls, handle } = fixture();
+  assert.equal((await handle({ cmd: "DOWNLOAD_BATCH", tabId: 10, items: [blobItem] }, { id: sender.id, url: "https://example.test" })).ok, false);
+  assert.equal((await handle({ cmd: "DOWNLOAD_BATCH", tabId: 10, items: [blobItem, { ...blobItem, documentId: "" }] }, sender)).ok, false);
+  assert.equal(calls.tabs.length, 0);
+});
+
 test("blob downloads run in their original MAIN-world document instead of chrome.downloads", async () => {
   const { calls, handle } = fixture();
   const response = await handle({ cmd: "DOWNLOAD_MEDIA", tabId: 10, item: blobItem }, sender);

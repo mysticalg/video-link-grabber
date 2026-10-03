@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>YouTube downloads · Video Link Grabber Local</title>
+  <link rel="stylesheet" href="download.css">
+  <link rel="stylesheet" href="batch.css">
+  <link rel="stylesheet" href="youtube.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">VIDEO LINK GRABBER · LOCAL BUILD</p>
+    <h1>YouTube downloads</h1>
+    <p id="helperStatus" role="status">Connecting to your local helper…</p>
+    <div id="helperSetup" class="helperSetup" hidden>
+      <a href="https://mysticalg.github.io/video-link-grabber/local/" target="_blank" rel="noopener noreferrer">Download helper</a>
+      <p>Download the ZIP from the GitHub release, extract it, then run <strong>Install helper.cmd</strong>. Return here and click Retry unfinished.</p>
+    </div>
+    <p id="summary" role="status" aria-live="polite">Preparing your selected videos…</p>
+    <div class="actions">
+      <button id="cancel" hidden>Cancel remaining</button>
+      <button id="retry" hidden>Retry unfinished</button>
+    </div>
+    <p class="help">Keep this queue tab open. The helper downloads video and audio and joins them on your computer. Files are saved in the folder shown below; they do not appear in Chrome’s download history.</p>
+    <p id="outputDir" class="help" hidden></p>
+    <details><summary>First-time setup</summary><p><a href="https://mysticalg.github.io/video-link-grabber/local/" target="_blank" rel="noopener noreferrer">Download helper and read setup instructions</a></p><p>Download and run <strong>Setup.exe</strong> once. The wizard offers to install missing tools. Then click Retry unfinished. This helper is only used by the local build.</p></details>
+    <ol id="queue" aria-label="Selected YouTube videos"></ol>
+  </main>
+  <script src="youtube.js" type="module"></script>
+</body>
+</html>

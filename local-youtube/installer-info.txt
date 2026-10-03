@@ -1,0 +1,14 @@
+Video Link Grabber Local for Windows
+
+This installs the local extension and its native download helper in your Windows user account. Close active download queues before continuing. An internet connection is required.
+
+If you keep the dependency option selected, setup installs any missing Python 3.10+, Node.js 22+ and FFmpeg/FFprobe through Windows Package Manager (WinGet), accepting their package/source agreements. Existing compatible tools are reused. Windows may ask you to approve an application installer. Required tools are separate applications and remain installed when you uninstall Video Link Grabber Local.
+
+Python license: https://docs.python.org/3/license.html
+Node.js license: https://github.com/nodejs/node/blob/main/LICENSE
+FFmpeg licensing: https://www.gyan.dev/ffmpeg/builds/ and https://ffmpeg.org/legal.html
+The helper also installs private Python packages from PyPI. Their licenses remain included with those packages. Bundled browser FFmpeg notices are in extension/vendor/NOTICE.md.
+
+Chrome requires one manual step for the Local extension: enable Developer mode and Load unpacked using the extension folder shown in the instructions. Setup cannot silently install a Chrome extension. The Store edition does not use this YouTube helper.
+
+Downloaded videos stay in your Downloads/Video Link Grabber folder and are not removed by uninstalling. The helper does not collect browser cookies, account tokens or telemetry. Only save content you have permission to download.

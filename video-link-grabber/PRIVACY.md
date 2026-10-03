@@ -6,7 +6,7 @@ Video Link Grabber identifies video sources on web pages and lets you save suppo
 
 ## Information processed on your device
 
-When you open the popup or rescan, the extension reads video elements, source links, relevant page metadata and HTML, loaded media request URLs, and poster images in the selected page and accessible frames. It uses this information to display sources and match them to the correct player.
+When you open the popup or rescan, the extension reads video elements, source links, relevant page metadata and HTML, loaded media request URLs, and poster images in the selected page and accessible frames. It uses this information to display sources and match them to the correct player. Nearby post text, captions, and video/page titles are used locally to create readable filenames. The extension does not send this content to an AI service or analyze video frames for naming.
 
 On X and Twitter pages, a page script starts when the page loads. It observes media request URLs and relevant video metadata from the site's existing responses so that page-generated blob players can be matched to their underlying video files or playlists. Responses are inspected transiently; only a bounded list of media URLs, poster URLs, content types, and bitrates is retained in that page's memory. Full API responses are not retained. This observer is not installed on other sites.
 
@@ -22,7 +22,7 @@ The extension does not sell user data or use it for advertising, creditworthines
 
 ## Storage and retention
 
-Scan metadata, source matches, and in-progress recordings are held temporarily in memory. Page metadata is cleared when the page closes or reloads; stream assembly data is released when its progress tab closes. Completed recording links expire after about ten minutes or can be dismissed sooner.
+Scan metadata, source matches, and in-progress recordings are held temporarily in memory. Page metadata is cleared when the page closes or reloads; stream assembly data is released when its progress tab closes. A selected download queue includes source URLs, filenames, and page identifiers in its local extension-tab URL so it can continue after the popup closes; Chrome may retain that URL in its tab/session or local history. Queue progress is kept in that tab's memory and is not restored after closing or reloading it. Completed recording links expire after about ten minutes or can be dismissed sooner.
 
 Downloaded files are saved where you or Chrome choose. They remain until you delete them. Chrome manages its normal download history. The extension does not maintain a separate persistent database of your browsing or downloads and does not synchronize results to cloud storage.
 

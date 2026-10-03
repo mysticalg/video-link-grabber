@@ -32,17 +32,61 @@ export async function pageAction(command, item = {}) {
     return null;
   }
   function filename(value, type = "") {
-    let name = String(value || "video").replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g, "_")
-      .replace(/[. ]+$/g, "").slice(0, 160) || "video";
-    if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)) name = `_${name}`;
-    const ext = mimeExtensions[type.split(";")[0].trim().toLowerCase()];
-    if (ext && !/\.[a-z0-9]{2,5}$/i.test(name)) name += `.${ext}`;
+    let name = String(value || "video").normalize("NFC")
+      .replace(/https?:\/\/\S+/gi, "")
+      .replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, "")
+      .replace(/[<>:"/\\|?*\u0000-\u001f\u007f-\u009f]/g, "_")
+      .replace(/\s+/g, " ").replace(/^\.+|[.\s]+$/g, "").trim() || "video";
+    if (/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/i.test(name)) name = `_${name}`;
+    const cleanType = type.split(";")[0].trim().toLowerCase();
+    const ext = mimeExtensions[cleanType] || (/^(mp4|webm|ogg|ogv|mov|m4v|mkv|m3u8|mpd)$/.test(cleanType) ? cleanType : "");
+    if (ext) name = `${name.replace(/\.(mp4|webm|ogg|ogv|mov|m4v|mkv|m3u8|mpd)$/i, "")}.${ext}`;
+    if (name.length > 180) {
+      const suffix = name.match(/\.[a-z0-9]{1,12}$/i)?.[0] || "";
+      name = name.slice(0, 180 - suffix.length).replace(/[\ud800-\udbff]$/u, "").replace(/[.\s]+$/g, "") + suffix;
+    }
     return name;
   }
-  function nameFor(url, videoId) {
-    if (!url || /^(blob:|data:)/.test(url)) return videoId || "video";
-    try { return filename(decodeURIComponent(new URL(url).pathname.split("/").pop())); }
-    catch { return videoId || "video"; }
+  function titleText(value) {
+    const text = String(value || "").replace(/https?:\/\/\S+/gi, "").replace(/\s+/g, " ").trim();
+    return /^(?:video(?: player|[- ]\d+)?|x|twitter|home\s*\/\s*x)$/i.test(text) ? "" : text;
+  }
+  const postSelector = 'article,[data-testid="tweet"],[data-testid="quoteTweet"]';
+  function postFor(media) {
+    let post = media?.closest(postSelector);
+    // Some X quotes use a clickable card instead of a nested article.
+    const quote = media?.closest('[role="link"]');
+    if (post && quote && quote !== post && post.contains(quote) && quote.querySelector('[data-testid="tweetText"]')) post = quote;
+    return post || null;
+  }
+  function belongsToPost(node, post) {
+    const nearest = node.closest(postSelector);
+    if (nearest && nearest !== post && !nearest.contains(post)) return false;
+    const quote = node.closest('[role="link"]');
+    return !quote || quote === post || !post.contains(quote) || !quote.querySelector('[data-testid="tweetText"]');
+  }
+  function nameFor(url, media = null) {
+    const post = postFor(media);
+    let postText = "";
+    if (post) {
+      postText = [...post.querySelectorAll('[data-testid="tweetText"]')]
+        .filter(node => belongsToPost(node, post)).map(node => titleText(node.textContent)).filter(Boolean).join(" ");
+    }
+    const labelledBy = media?.getAttribute("aria-labelledby")?.split(/\s+/)
+      .map(id => document.getElementById(id)?.textContent || "").join(" ");
+    const caption = media?.closest("figure")?.querySelector("figcaption")?.textContent;
+    const pageTitle = document.querySelector('meta[property="og:title"]')?.content ||
+      document.querySelector('meta[name="twitter:title"]')?.content || document.title;
+    let title = [postText, media?.getAttribute("title"), media?.getAttribute("aria-label"), labelledBy, caption, pageTitle]
+      .map(titleText).find(Boolean) || "";
+    if (!title && url && !/^(blob:|data:)/.test(url)) {
+      try { title = decodeURIComponent(new URL(url).pathname.split("/").pop()).replace(/\.(mp4|webm|ogg|ogv|mov|m4v|mkv|m3u8|mpd)$/i, ""); }
+      catch { /* Use a stable player fallback. */ }
+    }
+    title = filename(title || (media ? idFor(media) : "video"));
+    // Chrome's conflictAction: "uniquify" prevents overwrites when videos share
+    // a caption; filenames themselves contain no added author or post IDs.
+    return filename(title.slice(0, 150).replace(/[\ud800-\udbff]$/u, "").replace(/[.\s]+$/g, ""));
   }
   function canRecord(video) {
     return Boolean(video && !video.mediaKeys && typeof video.captureStream === "function" &&
@@ -95,6 +139,7 @@ export async function pageAction(command, item = {}) {
   try {
     if (command === "SCAN") {
       const found = new Map();
+      const sourceNames = new Map();
       const pagePoster = absolute(document.querySelector('meta[property="og:image"]')?.content) ||
         absolute(document.querySelector('link[rel="image_src"]')?.href);
       function add(url, from, media = null, type = "", poster = null) {
@@ -110,13 +155,21 @@ export async function pageAction(command, item = {}) {
         const videoId = media ? idFor(media) : null;
         const dedupeKey = url || videoId;
         if (found.has(dedupeKey)) return;
+        const sources = sourceFor(media);
+        const name = sourceNames.get(url) || nameFor(url, media);
+        if (media) {
+          for (const source of [sources.directUrl, sources.streamUrl]) {
+            if (source) sourceNames.set(source, name);
+          }
+        }
+        const sourceType = type || url?.match(videoExt)?.[1] || "";
         found.set(dedupeKey, {
-          url: url || "", videoId, from, type: type || url?.match(videoExt)?.[1] || "",
-          poster: absolute(poster) || pagePoster, filename: nameFor(url, videoId),
+          url: url || "", videoId, from, type: sourceType,
+          poster: absolute(poster) || pagePoster, filename: filename(name, sourceType),
           isBlob: Boolean(url?.startsWith("blob:")), isData: Boolean(url?.startsWith("data:")),
           isManifest: /\.(m3u8|mpd)(?:[?#]|$)/i.test(url || ""),
           canRecord: canRecord(media), recording: isRecording(videoId),
-          ...sourceFor(media),
+          ...sources,
           ...(/\.m3u8(?:[?#]|$)/i.test(url || "") ? { streamUrl: url } : {}),
           kind: !url ? "stream" : undefined
         });
@@ -179,7 +232,7 @@ export async function pageAction(command, item = {}) {
         const type = response.headers.get("content-type") || item.type || "";
         const length = response.headers.get("content-length");
         const size = length && /^\d+$/.test(length) ? Number(length) : null;
-        const name = filename(item.filename || nameFor(url, item.videoId), type);
+        const name = filename(item.filename || nameFor(url, video), type);
         if (command === "DOWNLOAD") save(url, name);
         return { ok: true, kind: "blob", type, size, filename: name,
           canRecord: canRecord(video), recording: isRecording(item.videoId),

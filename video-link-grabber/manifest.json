@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Video Link Grabber",
-  "version": "1.2.0",
+  "version": "1.3.3",
   "minimum_chrome_version": "111",
   "description": "Download video links, page-owned blobs and HLS streams with joined audio/video. Does not bypass DRM.",
   "permissions": [
