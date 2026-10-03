@@ -1,0 +1,59 @@
+name: Stage verified POSIX installers
+on:
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Successful native installer build run ID
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_RUN: ${{ inputs.source_run }}
+    steps:
+      - name: Require a successful build and an unpublished release
+        shell: bash
+        run: |
+          [[ "$SOURCE_RUN" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" > run.json
+          gh release view local-v1.5.0 --json isDraft,targetCommitish > release.json
+          python - <<'PY'
+          import json
+          run = json.load(open('run.json'))
+          release = json.load(open('release.json'))
+          assert run['conclusion'] == 'success' and run['status'] == 'completed'
+          assert run['path'] == '.github/workflows/posix-release.yml'
+          assert release['isDraft'] and release['targetCommitish'] == run['head_sha']
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.source_run }}
+          pattern: installer-*
+          merge-multiple: true
+          path: packages
+      - name: Verify all package checksums and stage draft assets
+        shell: bash
+        run: |
+          cd packages
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          root = Path.cwd()
+          for label in ('macOS-arm64', 'macOS-x64', 'linux-x64'):
+              for line in Path(f'SHA256SUMS-{label}.txt').read_text().splitlines():
+                  digest, name = line.split(maxsplit=1)
+                  target = (root / name).resolve()
+                  assert target.parent == root
+                  assert hashlib.sha256(target.read_bytes()).hexdigest() == digest
+          assert len(list(root.glob('*.pkg'))) == 2
+          assert len(list(root.glob('*.deb'))) == len(list(root.glob('*.rpm'))) == 1
+          PY
+          gh release upload local-v1.5.0 --clobber -- *
